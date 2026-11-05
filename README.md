@@ -31,7 +31,7 @@ OpenProject packaged installs currently target older distros (e.g. Ubuntu 22.04)
 | File | Purpose |
 |------|---------|
 | `docker-compose-example.yml` | Patched compose (seeder wait) — copy to `docker-compose.yml` on the server |
-| `.env.example` | Lab template — copy to `.env`, replace **`YOUR_SERVER_IP` only** for a demo |
+| `env.example` | Lab template — copy to `.env`, replace **`YOUR_SERVER_IP` only** for a demo |
 | `systemd/openproject.service` | Start stack on boot as user `openproject` |
 | `.gitignore` | Ignores `.env` (secrets) |
 
@@ -39,7 +39,7 @@ OpenProject packaged installs currently target older distros (e.g. Ubuntu 22.04)
 
 ```bash
 cp docker-compose-example.yml docker-compose.yml
-cp .env.example .env
+cp env.example .env
 sed -i 's/YOUR_SERVER_IP/192.168.202.106/g' .env   # your LAN IP
 chmod 600 .env
 ```
@@ -127,7 +127,7 @@ Install the example compose + env as user `openproject`:
 ```bash
 # From this docs/repo (adjust source path):
 sudo -u openproject cp /path/to/this-repo/docker-compose-example.yml /opt/openproject/docker-compose.yml
-sudo -u openproject cp /path/to/this-repo/.env.example /opt/openproject/.env
+sudo -u openproject cp /path/to/this-repo/env.example /opt/openproject/.env
 sudo -u openproject -H bash -c '
   cd /opt/openproject
   sed -i "s/YOUR_SERVER_IP/192.168.202.106/g" .env   # <-- your IP
@@ -158,7 +158,7 @@ sudo -u openproject -H bash -c 'cd /opt/openproject && docker compose up -d'
 sudo -iu openproject
 cd /opt/openproject
 cp docker-compose-example.yml docker-compose.yml   # if not copied yet
-cp .env.example .env
+cp env.example .env
 sed -i 's/YOUR_SERVER_IP/192.168.202.106/g' .env     # your LAN IP only
 chmod 600 .env
 grep -vE '^\s*#' .env | grep YOUR_SERVER_IP && echo "ERROR: IP not replaced" || echo "IP OK"
@@ -167,7 +167,7 @@ exit
 
 ### Production (after demo)
 
-Regenerate secrets and switch to FQDN + HTTPS (see comments inside `.env.example`):
+Regenerate secrets and switch to FQDN + HTTPS (see comments inside `env.example`):
 
 ```bash
 head /dev/urandom | tr -dc A-Za-z0-9 | head -c 64 ; echo   # SECRET_KEY_BASE
@@ -184,7 +184,7 @@ head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16 ; echo   # DB password (both U
 | `POSTGRES_PASSWORD` | same as in `DATABASE_URL` | mismatch → auth failed |
 | `PORT` | `0.0.0.0:8080` | `127.0.0.1:8080` blocks LAN/NPM |
 
-Compose fallbacks in `docker-compose-example.yml` match `.env.example` (demo secrets / HTTP). Prefer always using a real `.env`.
+Compose fallbacks in `docker-compose-example.yml` match `env.example` (demo secrets / HTTP). Prefer always using a real `.env`.
 
 ---
 
