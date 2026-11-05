@@ -49,7 +49,7 @@ You still need the rest of the upstream tree (`proxy/`, etc.). Typical layout on
 ```text
 /opt/openproject/          # owned by user openproject (not root)
   docker-compose.yml       # from docker-compose-example.yml
-  .env                     # from .env.example (YOUR_SERVER_IP replaced), mode 600
+  .env                     # from env.example (YOUR_SERVER_IP replaced), mode 600
   proxy/                   # from upstream clone (required to build openproject/proxy)
 ```
 
