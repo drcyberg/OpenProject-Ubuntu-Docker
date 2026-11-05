@@ -1,0 +1,21 @@
+[Unit]
+Description=OpenProject (Docker Compose)
+Documentation=https://www.openproject.org/docs/installation-and-operations/installation/docker-compose/
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=openproject
+Group=openproject
+WorkingDirectory=/opt/openproject
+# User must be in the "docker" group (access to /var/run/docker.sock)
+ExecStart=/usr/bin/docker compose up -d --remove-orphans
+ExecStop=/usr/bin/docker compose down
+ExecReload=/usr/bin/docker compose up -d --remove-orphans
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target
