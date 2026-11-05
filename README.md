@@ -279,6 +279,10 @@ sudo -u openproject -H bash -c 'cd /opt/openproject && docker compose up -d'
 
 Default login after seed: **admin** / **admin** — change immediately.
 
+### Result:
+
+![information](/img/information.jpg "Information")
+
 ---
 
 ## 7. Verification checklist
