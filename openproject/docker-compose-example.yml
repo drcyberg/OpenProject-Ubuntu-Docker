@@ -1,0 +1,154 @@
+# Example compose for Ubuntu 26.04 + OpenProject stable/17
+# ---------------------------------------------------------
+#   cp docker-compose-example.yml docker-compose.yml
+#   cp .env.example .env
+#   # Replace IP placeholder in .env (see README)
+#
+# Defaults below match .env.example (lab HTTP). Real values come from .env.
+# Patch vs upstream: web/worker/cron wait for seeder (service_completed_successfully).
+
+networks:
+  frontend:
+  backend:
+
+volumes:
+  pgdata:
+  opdata:
+
+x-op-restart-policy: &restart_policy
+  restart: unless-stopped
+x-op-image: &image
+  image: openproject/openproject:${TAG:-17-slim}
+x-op-app: &app
+  <<: [*image, *restart_policy]
+  environment:
+    OPENPROJECT_HTTPS: "${OPENPROJECT_HTTPS:-false}"
+    OPENPROJECT_HOST__NAME: "${OPENPROJECT_HOST__NAME:-YOUR_SERVER_IP}"
+    OPENPROJECT_ADDITIONAL__HOST__NAMES: "${OPENPROJECT_ADDITIONAL__HOST__NAMES:-web}"
+    OPENPROJECT_HSTS: "${OPENPROJECT_HSTS:-false}"
+    OPENPROJECT_RAILS__CACHE__STORE: "memcache"
+    OPENPROJECT_CACHE__MEMCACHE__SERVER: "cache:11211"
+    OPENPROJECT_RAILS__RELATIVE__URL__ROOT: "${OPENPROJECT_RAILS__RELATIVE__URL__ROOT:-}"
+    OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: "${COLLABORATIVE_SERVER_URL:-ws://YOUR_SERVER_IP:8080/hocuspocus}"
+    OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET: "${COLLABORATIVE_SERVER_SECRET:-DemoOnlyChangeInProduction_Hocuspocus}"
+    DATABASE_URL: "${DATABASE_URL:-postgres://postgres:DemoOnlyChangeInProduction_DbPass@db/openproject?pool=20&encoding=unicode&reconnect=true}"
+    RAILS_MIN_THREADS: ${RAILS_MIN_THREADS:-4}
+    RAILS_MAX_THREADS: ${RAILS_MAX_THREADS:-16}
+    IMAP_ENABLED: "${IMAP_ENABLED:-false}"
+    SECRET_KEY_BASE: "${SECRET_KEY_BASE:-DemoOnlyChangeInProduction_OpenProjectSecretKeyBase_64ch}"
+  volumes:
+    - "${OPDATA:-opdata}:/var/openproject/assets"
+
+services:
+  db:
+    image: postgres:${POSTGRES_VERSION:-17}
+    <<: *restart_policy
+    stop_grace_period: "3s"
+    volumes:
+      - "${PGDATA:-pgdata}:/var/lib/postgresql/data"
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-DemoOnlyChangeInProduction_DbPass}
+      POSTGRES_DB: openproject
+    networks:
+      - backend
+
+  cache:
+    image: memcached
+    <<: *restart_policy
+    networks:
+      - backend
+
+  proxy:
+    build:
+      context: ./proxy
+      args:
+        APP_HOST: web
+    image: openproject/proxy
+    <<: *restart_policy
+    ports:
+      - "${PORT:-0.0.0.0:8080}:80"
+    depends_on:
+      - web
+    networks:
+      - frontend
+
+  web:
+    <<: *app
+    command: "./docker/prod/web"
+    hostname: "${OPENPROJECT_HOST__NAME:-YOUR_SERVER_IP}"
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      db:
+        condition: service_started
+      cache:
+        condition: service_started
+      seeder:
+        condition: service_completed_successfully
+    labels:
+      - autoheal=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080${OPENPROJECT_RAILS__RELATIVE__URL__ROOT:-}/health_checks/default"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+
+  autoheal:
+    image: willfarrell/autoheal:1.2.0
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: autoheal
+      AUTOHEAL_START_PERIOD: 600
+      AUTOHEAL_INTERVAL: 30
+
+  worker:
+    <<: *app
+    command: "./docker/prod/worker"
+    networks:
+      - backend
+    depends_on:
+      db:
+        condition: service_started
+      cache:
+        condition: service_started
+      seeder:
+        condition: service_completed_successfully
+
+  cron:
+    <<: *app
+    command: "./docker/prod/cron"
+    networks:
+      - backend
+    depends_on:
+      db:
+        condition: service_started
+      cache:
+        condition: service_started
+      seeder:
+        condition: service_completed_successfully
+
+  seeder:
+    <<: *app
+    command: "./docker/prod/seeder"
+    restart: on-failure
+    networks:
+      - backend
+    depends_on:
+      db:
+        condition: service_started
+      cache:
+        condition: service_started
+
+  hocuspocus:
+    image: openproject/hocuspocus:17.9.6
+    environment:
+      SECRET: ${COLLABORATIVE_SERVER_SECRET:-DemoOnlyChangeInProduction_Hocuspocus}
+      OPENPROJECT_URL: "${OPENPROJECT_URL:-http://web:8080}"
+      OPENPROJECT_HTTPS: "${OPENPROJECT_HTTPS:-false}"
+    networks:
+      - backend
+      - frontend
+    <<: *restart_policy
