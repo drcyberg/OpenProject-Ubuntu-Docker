@@ -1,5 +1,7 @@
 # OpenProject 17 on Ubuntu 26.04 with Docker Compose
 
+![banner](/img/banner.png "Banner")
+
 Working install notes for **OpenProject stable/17** on **Ubuntu 26.04**, where the official **DEB packages are not available**. This guide documents pitfalls we hit in production (proxy image build, named volumes, parallel seeder migrations, bind address, systemd).
 
 Upstream: [opf/openproject-docker-compose](https://github.com/opf/openproject-docker-compose) (`stable/17`).
