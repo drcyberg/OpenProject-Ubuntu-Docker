@@ -152,7 +152,7 @@ sudo -u openproject -H bash -c 'cd /opt/openproject && docker compose up -d'
 
 ## 4. Configure `.env` (as `openproject`, no sudo)
 
-`.env.example` and `docker-compose-example.yml` are aligned for a **lab/demo**: pre-filled secrets, HTTP, named volumes. For a demo you only replace **`YOUR_SERVER_IP`** (two occurrences: host + Hocuspocus URL).
+`env.example` and `docker-compose-example.yml` are aligned for a **lab/demo**: pre-filled secrets, HTTP, named volumes. For a demo you only replace **`YOUR_SERVER_IP`** (two occurrences: host + Hocuspocus URL).
 
 ```bash
 sudo -iu openproject
