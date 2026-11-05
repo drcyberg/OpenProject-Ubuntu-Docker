@@ -18,7 +18,7 @@ OpenProject packaged installs currently target older distros (e.g. Ubuntu 22.04)
 
 | Resource | Minimum | Recommended |
 |----------|---------|-------------|
-| OS | Ubuntu 26.04 (64-bit) | same |
+| OS | [Ubuntu 26.04 (64-bit)](https://documentation.ubuntu.com/release-notes/26.04/) | same |
 | CPU | 2 vCPU | **4 vCPU** |
 | RAM | **4 GB | **8 GB** |
 | Disk | 20 GB free | 40+ GB SSD |
